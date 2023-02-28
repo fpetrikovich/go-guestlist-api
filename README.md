@@ -13,11 +13,7 @@ This architecture allows data from the upper layer to be passed to the lower lay
 In addition, a global error handler wraps the handlers to provide a centralized place to handle errors.
 
 ## Application Handling
-Standing on the root directory, start by moving to the golang directory:
-```
-cd golang
-```
-In this directory, you can run the Makefile commands to start the app, prune it, generate mock files, and run the unit tests. Read the sections below on how to run each case.
+In the root directory, you can run the Makefile commands to start the app, prune it, generate mock files, and run the unit tests. Read the sections below on how to run each case.
 
 ### Run the app
 To start up the docker container with the mysql image, run:

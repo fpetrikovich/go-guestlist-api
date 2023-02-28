@@ -1,0 +1,326 @@
+openapi: 3.0.2
+info:
+  title: Guest List API
+  description: This API was created to handle tables and guests at an event, specifically the end of year party. It features a layered design and a Swagger API specification for an extended API documentation.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/
+paths:
+  /ping:
+    get:
+      tags:
+        - General
+      summary: Health check
+      responses:
+        200:
+          description: API is working
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+  /tables:
+    post:
+      tags:
+        - Tables
+      summary: Add table
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                capacity:
+                  type: integer
+                  description: The capacity of the table
+      responses:
+        200:
+          description: Table added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  capacity:
+                    type: integer
+    get:
+      tags:
+        - Tables
+      summary: Recovers all tables
+      responses:
+        200:
+          description: Tables found successfuly
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tables:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        capacity:
+                          type: integer
+                        updated_at:
+                          type: string
+                          format: "2006-01-02 15:04:05"
+                        created_at:
+                          type: string
+                          format: "2006-01-02 15:04:05"
+  /tables/{id}:
+    get:
+      tags:
+        - Tables
+      summary: Get information for a table
+      parameters:
+        - name: id
+          in: path
+          description: Id of the table to recover
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Table found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  capacity:
+                    type: integer
+        404:
+          description: Table doesn't exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '[ERROR] Table with id {ID} not found'
+        400:
+          description: Bad input id
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '[ERROR] Table ID is not a number'
+  /seats_empty:
+    get:
+      tags:
+        - Tables
+      summary: Returns empty seats throughout all tables
+      responses:
+        200:
+          description: Found all empty seats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  seats_empty:
+                    type: integer
+  /guest_list/{name}:
+    post:
+      tags:
+        - Guest List
+      summary: Add a guest to the guestlist
+      parameters:
+        - name: name
+          in: path
+          description: name of the guest to add
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                table:
+                  type: integer
+                  description: The id of the table to assign the guest to
+                accompanying_guests:
+                  type: integer
+                  description: The number of accompanying guests
+      responses:
+        200:
+          description: Guest added to guestlist successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+        400:
+          description: Bad request
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: >
+                  error:
+                   * `First Error` - Table capacity error.
+                   * `Second Error` - Invalid input.
+                enum:
+                - "[ERROR] Table has free capacity of N, entourage exceeds capacity by M."
+                - "[ERROR] Invlid input: {NAME}"
+        409:
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "[ERROR] Guest with name {NAME} already exists."
+    get:
+      tags:
+        - Guest List
+      summary: Get a guest from the guest list
+      parameters:
+        - name: name
+          in: path
+          description: Name of the guest to recover
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Guest recovered successfuly
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  guest_id:
+                    type: integer
+                  name:
+                    type: string
+                  accompanying_guest:
+                    type: integer
+                  arrival_status:
+                    type: string
+                    enum: ['not_arrived', 'arrived', 'rejected', 'left', 'allocate']
+                  arrived_at:
+                    type: string
+                    format: "2006-01-02 15:04:05"
+                  updated_at:
+                    type: string
+                    format: "2006-01-02 15:04:05"
+                  created_at:
+                    type: string
+                    format: "2006-01-02 15:04:05"
+        404:
+          description: Guest doesn't exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '[ERROR] Guest with name {NAME} not found'
+        400:
+          description: Bad input name
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '[ERROR] Invlid input: {NAME}'
+  /guest_list:
+    get:
+      tags:
+        - Guest List
+      summary: Get the guest list
+      responses:
+        200:
+          description: Guests returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  guests:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        table:
+                          type: integer
+                        accompanying_guests:
+                          type: integer
+  /guests/{name}:
+    put:
+      tags:
+        - Guests
+      summary: Guest arrives
+      parameters:
+        - name: name
+          in: path
+          description: name of the guest to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accompanying_guests:
+                  type: integer
+                  description: The number of accompanying guests the guest arrives with
+      responses:
+        200:
+          description: Guest updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+    delete:
+      tags:
+        - Guests
+      summary: Guest leaves
+      parameters:
+        - name: name
+          in: path
+          description: name of the guest to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Guest deleted successfully
+  /guests:
+    get:
+      tags:
+        - Guests
+      summary: Get arrived guests
+      responses:
+        200:
+          description: Guests returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  guests:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        time_arrived:
+                          type: string
+                          format: "2006-01-02 15:04:05"
+                        accompanying_guests:
+                          type: integer
